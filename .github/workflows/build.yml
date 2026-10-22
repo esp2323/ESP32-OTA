@@ -1,0 +1,42 @@
+name: Build ESP32 Firmware
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install ESP32 platform
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+
+      - name: Prepare sketch
+        run: |
+          mkdir -p ESP_32_OTA_101
+          cp ESP_32_OTA_101.ino ESP_32_OTA_101/ESP_32_OTA_101.ino
+
+      - name: Compile firmware
+        run: |
+          arduino-cli compile \
+            --fqbn esp32:esp32:esp32:PartitionScheme=default \
+            --output-dir build \
+            ESP_32_OTA_101
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ESP32-firmware
+          path: build/*.bin
+          
