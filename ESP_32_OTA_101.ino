@@ -14,7 +14,7 @@ const char* VERSION_URL =
 const char* FIRMWARE_URL =
   "https://github.com/esp2323/ESP32-OTA/releases/latest/download/firmware.bin";
 
-// ===== This firmware version =====
+// ===== Installed firmware version =====
 const char* CURRENT_VERSION = "1.0.1";
 
 // ===== Hardware =====
@@ -154,10 +154,12 @@ bool checkForUpdate() {
 
   WiFiClientSecure client;
 
-  // Prototype only; certificate verification is disabled.
+  // Prototype only: TLS certificate verification is disabled.
+  // Configure certificate validation before production use.
   client.setInsecure();
 
   HTTPClient http;
+  http.setConnectTimeout(10000);
   http.setTimeout(10000);
 
   if (!http.begin(client, VERSION_URL)) {
@@ -197,7 +199,6 @@ bool checkForUpdate() {
 
   httpUpdate.rebootOnUpdate(false);
   httpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
-  httpUpdate.setTimeout(30000);
 
   t_httpUpdate_return result =
     httpUpdate.update(
@@ -280,7 +281,6 @@ void setup() {
 void loop() {
   unsigned long now = millis();
 
-  // New firmware: LED changes state every 200 ms
   if (now - lastBlink >= BLINK_INTERVAL) {
     lastBlink = now;
     ledState = !ledState;
